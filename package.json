@@ -1,0 +1,44 @@
+{
+  "name": "fmt_back",
+  "version": "1.0.0",
+  "description": "node backend",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Avantica777/FMT_Back.git"
+  },
+  "author": "knight",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Avantica777/FMT_Back/issues"
+  },
+  "homepage": "https://github.com/Avantica777/FMT_Back#readme",
+  "dependencies": {
+    "audit": "0.0.6",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.17.1",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "express-handlebars": "^3.0.2",
+    "express-messages": "^1.0.1",
+    "express-session": "^1.15.2",
+    "express-validator": "^5.3.1",
+    "joi": "^14.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^3.2.2",
+    "mongoose": "^5.4.20",
+    "morgan": "^1.8.1",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
+    "randomstring": "^1.1.5",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.15.3"
+  }
+}
