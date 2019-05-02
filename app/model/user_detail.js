@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 var UserDetailSchema = new mongoose.Schema({
-  email: {
+  username: {
     type: String,
     unique: true,
     required: true,
@@ -9,7 +9,6 @@ var UserDetailSchema = new mongoose.Schema({
   stocks: [],
   t_strategy: {
     type: String,
-    required: true,
   },
   portfolios: []
 });

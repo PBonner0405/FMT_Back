@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../model/user');
+const UserInfo = require("../model/user_detail");
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 
@@ -28,45 +29,68 @@ router.post('/register', function(req, res){
     console.log(errors);
     res.send(errors);
   } else {
-    let newUser = new User({
-        // name: name,
-        email: email,
-        username: username,
-        password: password
-    });
-
-    bcrypt.genSalt(10, function(err, salt){
-        bcrypt.hash(newUser.password, salt, function(err, hash){
-            if(err){
-                console.log(err);
-                res.send(err);
-            }
-            newUser.password = hash;
-            console.log("saving...");
-
-            User.find({email: newUser.email, username: newUser.username})
-            .then(result => {
-                console.log("search_result::" + result);
-                if(result.length > 0){
-                    res.send("duplicate email or username");
+    UserInfo.find({username:username})
+    .then(result => {
+        if(result.length > 0){                  //if exist...
+            res.send("Username Already Exist...");
+        } else {
+            let _userDetail = new UserInfo({
+                username: username,
+                stocks: [],
+                t_strategy: "",
+                portfolios: []
+            });
+            _userDetail.save(function(er, rst){
+                if(er){
+                    console.log("error found while saving user details...");
+                    res.send(er);
                 } else {
-                    newUser.save(function(error, user){
-                        console.log("hmm..." + error);
-                        if(error){
-                            res.send(error);
-                        } else{
-                            console.log(user);
-                            res.send("success");
-                        }
+                    let newUser = new User({
+                        // name: name,
+                        email: email,
+                        username: username,
+                        password: password,
+                    });
+                    bcrypt.genSalt(10, function(err, salt){
+                        bcrypt.hash(newUser.password, salt, function(err, hash){
+                            if(err){
+                                console.log(err);
+                                res.send(err);
+                            }
+                            newUser.password = hash;
+                            console.log("saving...");
+                
+                            User.find({email: newUser.email, username: newUser.username})
+                            .then(result => {
+                                console.log("search_result::" + result);
+                                if(result.length > 0){
+                                    res.send("duplicate email or username");
+                                } else {
+                                    newUser.save(function(error, user){
+                                        console.log("hmm..." + error);
+                                        if(error){
+                                            res.send(error);
+                                        } else{
+                                            console.log(user);
+                                            res.send("success");
+                                        }
+                                    });
+                                }
+                            })
+                            .catch(err => {
+                                console.log("error ::" + err);
+                            })
+                
+                        });
                     });
                 }
             })
-            .catch(err => {
-                console.log("error ::" + err);
-            })
-
-        });
-    });
+        }
+    })
+    .catch(err => {
+        console.log("y is it?");
+        res.send(err);
+    })
   }
 });
 
