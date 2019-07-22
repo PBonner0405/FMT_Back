@@ -94,9 +94,4 @@ db.on('error', function(err){
   console.log("what's wrong???",err);
 });
 
-// MongoClient.connect(config.dburl, function(err, db) {
-//     if (err) throw err;
-//     console.log("DB created");
-// });
-
 module.exports = app;

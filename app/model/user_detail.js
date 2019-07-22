@@ -10,7 +10,10 @@ var UserDetailSchema = new mongoose.Schema({
   t_strategy: {
     type: String,
   },
-  portfolios: []
+  portfolios: [],
+  deposit: {
+    type: Number
+  }
 });
 var UserInfo = mongoose.model('UserInfo', UserDetailSchema);
 module.exports = UserInfo;

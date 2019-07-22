@@ -16,7 +16,6 @@ router.post('/register', function(req, res){
   const username = req.body.username;
   const password = req.body.password;
   
-//   console.log(req.body.name);
 //   req.checkBody('name', 'Name is Required').notEmpty();
   req.checkBody('email', "Email is required").notEmpty();
   req.checkBody("email", "Email is not valid").isEmail();
@@ -26,7 +25,6 @@ router.post('/register', function(req, res){
   let errors = req.validationErrors();
 
   if(errors){
-    console.log(errors);
     res.send(errors);
   } else {
     UserInfo.find({username:username})
@@ -42,7 +40,6 @@ router.post('/register', function(req, res){
             });
             _userDetail.save(function(er, rst){
                 if(er){
-                    console.log("error found while saving user details...");
                     res.send(er);
                 } else {
                     let newUser = new User({
@@ -54,31 +51,25 @@ router.post('/register', function(req, res){
                     bcrypt.genSalt(10, function(err, salt){
                         bcrypt.hash(newUser.password, salt, function(err, hash){
                             if(err){
-                                console.log(err);
                                 res.send(err);
                             }
                             newUser.password = hash;
-                            console.log("saving...");
                 
                             User.find({email: newUser.email, username: newUser.username})
                             .then(result => {
-                                console.log("search_result::" + result);
                                 if(result.length > 0){
                                     res.send("duplicate email or username");
                                 } else {
                                     newUser.save(function(error, user){
-                                        console.log("hmm..." + error);
                                         if(error){
                                             res.send(error);
                                         } else{
-                                            console.log(user);
                                             res.send("success");
                                         }
                                     });
                                 }
                             })
                             .catch(err => {
-                                console.log("error ::" + err);
                             })
                 
                         });
@@ -88,7 +79,6 @@ router.post('/register', function(req, res){
         }
     })
     .catch(err => {
-        console.log("y is it?");
         res.send(err);
     })
   }
@@ -101,7 +91,7 @@ router.get('/login', function(req, res){
 
 //Login Process
 router.post('/login', function(req, res, next){
-    let query = {email: req.body.email};
+    let query = {username: req.body.username};
     User.findOne(query, function(err, result){
         if(err) res.send(err);
         if(!result) res.send("no user found!");

@@ -6,12 +6,18 @@ var PortfolioSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    cash: {
+        type: Number,
+        required: true,
+        default: 0,
+        trim: true
+    },
     comment: {
         type: String,
         required: true,
         trim: true
     },
-    stocks: [], // array of {stock_name, count} 
+    stocks: [], // array of {stock_name, count} = > {buy/sell, stock name, price, count, date} 
     likes: {
         type: Number,
         required: true,

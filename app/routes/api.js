@@ -23,22 +23,17 @@ const request = require('request');
 //     /*  unirest.get("https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/get-detail?region=US&lang=en&symbol=NBEV")
 //         .header("X-RapidAPI-Key", "fd695e4121mshd621670d4433da9p1d9c65jsndb9b07bb8987")
 //         .end(function (result) {
-//         console.log(result.status, result.headers, result.body);
 //         });  */
 //     // yahoo X-RapidApi-Key  fd695e4121mshd621670d4433da9p1d9c65jsndb9b07bb8987
 //     // should have to pay to use yahoo
 //     // unirest.get("https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/get-detail?region=US&lang=en&symbol=NBEV")
 //     //     .header("X-RapidAPI-Key", "fd695e4121mshd621670d4433da9p1d9c65jsndb9b07bb8987")
 //     //     .end(function (result) {
-//     //             console.log(result.status, result.headers, result.body);
 //     //     }
 //     // );
     
 //     const request = require('request');
 //         request('http://finance.google.com/finance/feeds/', { json: true }, (err, result, body) => {
-//         if (err) { return console.log(err); }
-//         console.log(body);
-//         console.log(body.explanation);
 //         res.send("success");
 //     });
 // });
@@ -49,13 +44,11 @@ const request = require('request');
 //     // month [ 0 -> 11 ] = [ January -> December ]
 //     yahooStockPrices.getHistoricalPrices(0, 1, 2019, 3, 1, 2019, req.body.stock, '1d', function(err, prices){
 //         if(err) throw err;
-//         console.log(prices);
 //         res.send(prices);
 //     });
 
 //     yahooStockPrices.getCurrentPrice(req.body.stock, function(err, price){
 //         if(err) throw err;
-//         console.log(prices);
 //         res.send(prices);
 //     });
 // });
@@ -70,7 +63,6 @@ function editInfo(sIndex, _updateValue,res, key){                              /
                 if (error) {
                     res.send(error);
                 } else {
-                    console.log(result);
                     if(result.nModified){
                         res.send("success")
                     } else{
@@ -85,7 +77,6 @@ function editInfo(sIndex, _updateValue,res, key){                              /
                 if (error) {
                     res.send(error);
                 } else {
-                    console.log(result);
                     if(result.nModified){
                         res.send("success")
                     } else{
@@ -100,7 +91,6 @@ function editInfo(sIndex, _updateValue,res, key){                              /
                 if (error) {
                     res.send(error);
                 } else {
-                    console.log(result);
                     if(result.nModified){
                         res.send("success")
                     } else{
@@ -122,12 +112,9 @@ function saveNewStock(_name,_hist_content, _username, res){
     });
     _new.save(
         function(err, stock){
-            console.log("new stock is saving...");
             if(err){
-                console.log(err);
                 res.send(err.errmsg);
             } else {
-                console.log("stock saved!", stock, _username);
                 let _updateValue =  {$push: {stocks: stock._id}};
                 editInfo(_username, _updateValue, res, 1);
             }
@@ -135,6 +122,30 @@ function saveNewStock(_name,_hist_content, _username, res){
     )
 }
 
+/****************Update Stock history **********************/
+function updateStock(_id,_hist_content){
+    //update stock history
+    //save history data to histories db and return it's objectID
+    let data = new History({
+        price: _hist_content.price,
+        date: _hist_content.date
+    });
+    data.save(function(err, res){
+        if(err != null){
+        } else {
+            // res._id
+            let _updateValue =  {$push: {_history: res._id}};
+            Stock.updateOne({_id, _id}, _updateValue, (er, re)=>{
+                return true;
+            })
+            .catch(err=> {
+                return false;
+            });
+        }
+    });
+}
+
+/***Add New Stock */
 router.post('/addnewstock', function(req, res){
     let _name = req.body._name;                 //new stock name
     let _histArray = req.body._histArray;       //stock history with date&price
@@ -151,7 +162,6 @@ router.post('/addnewstock', function(req, res){
                 //save history data to histories db and return it's objectID
                 let data = new History({
                     price: _histArray[i].price,
-                    profit: _histArray[i].profit,
                     date: _histArray[i].date
                 });
             
@@ -159,7 +169,6 @@ router.post('/addnewstock', function(req, res){
                     if(err){
                         res.send("Something went wrong while saving histories...");
                     } else {
-                        console.log("hist:res::", re);
                         _hist_content.push(re._id);
                         cnt ++;
                         if(cnt == _histArray.length){
@@ -171,7 +180,6 @@ router.post('/addnewstock', function(req, res){
         }
     })
     .catch(err => {
-        console.log("erro while finding stock", err);
         res.send(err);
     })
 });
@@ -179,7 +187,6 @@ router.post('/addnewstock', function(req, res){
 router.post("/addTStrategy", function(req, res){                    //add users trading strategy
     const _username = req.body._username;                           //user name
     const _TSContent = req.body._tscontent;                         //trading strategy content
-    console.log(_username, _TSContent);
     let _updateValue =  {$set: {t_strategy: _TSContent}};
     editInfo(_username, _updateValue, res, 1);
 });
@@ -190,8 +197,8 @@ router.post("/addPortfolio", function(req, res){                    //add users 
     const _comment = req.body._comment;                             //portfolio comment
     const _stockArray = req.body._stockArray;                       //stocks with count in user's portfolio {stockName, CNT}
     const _pf_date = req.body._date;                                //date of current portfolio completed
+    const _cash = req.body._cash;                                   //initial cash
 
-    console.log(_username, _title);
     Portfolio.findOne({title: _title})
     .then(result => {
         if(result != null && result.length > 0){                    //if exist...
@@ -199,42 +206,36 @@ router.post("/addPortfolio", function(req, res){                    //add users 
         } else {
             var data = new Portfolio({
                 title: _title,
+                cash: _cash,
                 comment: _comment,
                 stocks: [],                                         //{sID, sCount}
                 likes: 0,
                 date: _pf_date
             });
             var cnt = 0;
-            console.log(_stockArray, _stockArray.length);
             for(var i = 0 ; i < _stockArray.length ; i ++){
-                console.log(_stockArray[i].stockName, _stockArray[i].CNT);
                 Stock.findOne({_name: _stockArray[i].stockName})
                 .then(stock => {
                     if(stock != null){
-                        let _value = { sID: stock._id, sCount:_stockArray[cnt].CNT };
+                        let _value = { sID: _stockArray[cnt].stockName, sCount:_stockArray[cnt].CNT, buy: _stockArray[cnt].buy, date: _stockArray[cnt].date, price: _stockArray[cnt].price };
                         data.stocks.push(_value);
                         cnt ++;
-                        console.log(data);
                         if(cnt == _stockArray.length){
                             data.save(function(er, portfolio){
                                 if(er){
-                                    console.log("something went wrong??", er);
                                     res.send(er.errmsg);
                                 } else {
-                                    console.log("saved portfolio", portfolio);
                                     let _updateValue =  {$push: {portfolios: portfolio._id}};
                                     editInfo(_username, _updateValue, res, 1);            //add saved portfolio to user
                                 }
                             })
                         }
                     } else {
-                        console.log("what's wrong?");
                         res.send("error");
                         return;
                     }
                 })
                 .catch(err => {
-                    console.log(err);
                     res.send(err.errmsg);
                 })
             }
@@ -252,14 +253,12 @@ router.post("/getUserStocks", function(req, res){                   //get stocks
     .then( result => {
         if(result != null && result.length > 0){
             let _userStocks = result[0].stocks;
-            // console.log(result,_userStocks);
             if(_userStocks.length > 0){
                 var cnt = 0;
                 var _stockArray = [];
                 _userStocks.forEach(element => {
                     Stock.findOne({_id: element})
                     .then(result => {
-                        console.log("stock::", result);
                         
                         var hcnt = 0;
                         var stock = {
@@ -269,7 +268,6 @@ router.post("/getUserStocks", function(req, res){                   //get stocks
                         result._history.forEach(item => {
                             History.findOne({_id: item})
                             .then(history => {
-                                console.log("hist:::", history);
                                 stock.shistory.push(history);
                                 hcnt ++;
                                 if(hcnt == result._history.length){
@@ -281,14 +279,12 @@ router.post("/getUserStocks", function(req, res){                   //get stocks
                                 }
                             })
                             .catch(err => {
-                                console.log(err);
                                 res.send("error");
                             })
                         })
                         
                     })
                     .catch(err => {
-                        console.log(err);
                     })
 
                     // res.send(_userStocks);
@@ -301,7 +297,6 @@ router.post("/getUserStocks", function(req, res){                   //get stocks
         }
     })
     .catch( error => {
-        console.log(error);
         res.send( _username +" is not the registered user");
     });
 });
@@ -313,14 +308,12 @@ router.post("/getUserTS", function(req, res){                   //get stocks for
     .then( result => {
         if(result != null && result.length > 0){
             let _userTS = result[0].t_strategy;
-            // console.log(result,_userStocks);
             res.send(_userTS)
         } else {
             res.send("Cannot find " + _username);
         }
     })
     .catch( error => {
-        console.log(error);
         res.send( _username +" is not the registered user");
     });
 });
@@ -332,45 +325,60 @@ router.post("/getUserPortfolios", function(req, res){                   //get st
     .then( result => {
         if(result != null && result.length > 0){
             let _userPortfolios = result[0].portfolios;
-            // console.log(result,_userPortfolios);
+            
             if(_userPortfolios.length > 0){
                 var cnt = 0;
                 var _portfolioArray = [];
                 _userPortfolios.forEach(element => {
                     Portfolio.findOne({_id: element})
                     .then(result => {
-                        console.log("portfolio::", result);
-                        
-                        var sCnt = 0;
-                        var m_stocks = [];
-                        result.stocks.forEach(item => {
-                            Stock.findOne({_id: item.sID}, function(m_err, m_res){
-                                if(m_err){
-                                    res.send("failed");
-                                } else {
-                                    sCnt ++;
-                                    m_stocks.push(m_res._name);
-                                    if(sCnt == result.stocks.length){
-                                        cnt ++;
-                                        let m_result = {
-                                            likes: result.likes,
-                                            title: result.title,
-                                            comment: result.comment,
-                                            date: result.date,
-                                            stocks: m_stocks
-                                        }
-                                        _portfolioArray.push(m_result);
-                                        if(cnt == _userPortfolios.length){
-                                            res.send(_portfolioArray);
-                                        }
+                        if(result.stocks == null){
+                            cnt++;
+                            let m_result = {
+                                likes: parseFloat(result.likes),
+                                title: result.title,
+                                comment: result.comment,
+                                date: result.date,
+                                cash: result.cash,
+                                stocks: []
+                            }
+                            _portfolioArray.push(m_result);
+                            if(cnt == _userPortfolios.length){
+                                res.send(_portfolioArray);
+                            }
+                        }
+                        else {
+                            var sCnt = 0;
+                            var m_stocks = [];
+                            result.stocks.forEach(item => {
+                                sCnt ++;
+                                var m_stock = {
+                                    stock: item.sID,
+                                    cnt: item.sCount,
+                                    buy: item.buy,
+                                    date: item.date,
+                                    price: parseFloat(item.price),
+                                }
+                                m_stocks.push(m_stock);
+                                if(sCnt == result.stocks.length){
+                                    cnt ++;
+                                    let m_result = {
+                                        likes: parseFloat(result.likes),
+                                        title: result.title,
+                                        comment: result.comment,
+                                        date: result.date,
+                                        cash: result.cash,
+                                        stocks: m_stocks
+                                    }
+                                    _portfolioArray.push(m_result);
+                                    if(cnt == _userPortfolios.length){
+                                        res.send(_portfolioArray);
                                     }
                                 }
                             })
-                        })
-                        
+                        }
                     })
                     .catch(err => {
-                        console.log(err);
                     })
 
                     // res.send(_userPortfolios);
@@ -383,7 +391,6 @@ router.post("/getUserPortfolios", function(req, res){                   //get st
         }
     })
     .catch( error => {
-        console.log(error);
         res.send( _username +" is not the registered user");
     });
 });
@@ -402,18 +409,15 @@ router.post("/editPortfolio", function(req, res){                   // add|edit|
             /********************************************************
              * _data contains {stock, shares, profit, price} *
              *******************************************************/
-            console.log("cmd:", 1);
             let history = new History({
                 price: _data.price,
-                profit: _data.profit,
-                date: Date.now()
+                date: _data.date,
             });
-        
+
             history.save(function(error, result){
                 if(error){
                     res.send("error");
                 } else {
-                    console.log("hist:res::", result, result._id);
                     let _updateValue = {$push: {_history: result._id}}
                     Stock.updateOne({_name: _data.stock}, _updateValue, function(err, re){
                         if(err){
@@ -424,7 +428,8 @@ router.post("/editPortfolio", function(req, res){                   // add|edit|
                                     if(m_err){
                                         res.send("error");
                                     } else {
-                                        let _updatePValue = {$push: {stocks: {sID: m_res._id, sCount: _data.shares}}};
+                                        var search_ind = "stocks."+_data.index+".date";
+                                        let _updatePValue = {$push: {stocks: {sID: m_res._name, sCount: _data.shares, buy: _data.buy, date: _data.date, price:_data.price}}};
                                         editInfo(_pTitle, _updatePValue, res, 2);
                                     }
                                 })
@@ -443,33 +448,28 @@ router.post("/editPortfolio", function(req, res){                   // add|edit|
             /********************************************************
              * _data contains {stock} *
              *******************************************************/
-            console.log("cmd:", 2);
             Stock.findOne({_name: _data.stock}, function(error, result){
                 if(error){
                     res.send("error");
                 } else {
-                    let _updatePValue = {$pull: {stocks: {sID: result._id}}};
+                    var search_ind = "stocks."+_data.index+".date";
+                    let _updatePValue = {$pull: {stocks: {sID: result._name, date: _data.date}}};
                     editInfo(_pTitle, _updatePValue, res, 2);
                 }
             })
         break;
-
         case 3:
             /********************************************************
              * _data contains {stock, shares, profit, price} *
              *******************************************************/
-            console.log("cmd:", 3);
             let hist = new History({
                 price: _data.price,
-                profit: _data.profit,
                 date: Date.now()
             });
-        
             hist.save(function(error, result){
                 if(error){
                     res.send("error");
                 } else {
-                    console.log("hist:res::", result);
                     let _updateValue = {$push: {_history: result._id}}
                     Stock.updateOne({_name: _data.stock}, _updateValue, function(err, re){
                         if(err){
@@ -480,20 +480,27 @@ router.post("/editPortfolio", function(req, res){                   // add|edit|
                                     res.send("error");
                                 }
                                 else {
-                                    console.log(m_res._id, _data.shares);
-                                    let _updatePValue = {$set: {"stocks.$": {sID: m_res._id, sCount: _data.shares}}};
-                                    Portfolio.updateOne({title:_pTitle, "stocks.sID":m_res._id}, _updatePValue, function(error, result) {
-                                        if (error) {
-                                            res.send(error);
-                                        } else {
-                                            console.log(result);
-                                            if(result.nModified){
-                                                res.send("success")
-                                            } else{
-                                                res.send("Something went wrong... \n Please try again.");
-                                            }
+                                    // var search_ind = "stocks."+_data.index+".date";
+                                    Portfolio.find({title:_pTitle}, function(error, rr) {
+                                        var _newStocks = [];
+                                        if(rr!==null){
+                                            _newStocks = rr[0].stocks;
+                                            var _newStock = {sID: _data.stock, sCount: _data.shares, buy: _data.buy, date: _data.date, price:_data.price};
+                                            _newStocks[_data.index] = _newStock;
                                         }
-                                    })
+                                        let _updatePValue = {"stocks": _newStocks};
+                                        Portfolio.updateOne({title:_pTitle}, _updatePValue, function(er, p_res) {
+                                            if (er) {
+                                                res.send(er);
+                                            } else {
+                                                if(p_res.nModified){
+                                                    res.send("success")
+                                                } else{
+                                                    res.send("Something went wrong... \n Please try again.");
+                                                }
+                                            }
+                                        })
+                                    });
                                 }                                
                             })                            
                         }
