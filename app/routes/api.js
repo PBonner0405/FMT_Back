@@ -217,7 +217,7 @@ router.post("/addPortfolio", function(req, res){                    //add users 
                 Stock.findOne({_name: _stockArray[i].stockName})
                 .then(stock => {
                     if(stock != null){
-                        let _value = { sID: _stockArray[cnt].stockName, sCount:_stockArray[cnt].CNT, buy: _stockArray[cnt].buy, date: _stockArray[cnt].date, price: _stockArray[cnt].price };
+                        let _value = { sID: _stockArray[cnt].stockName, sCount:parseInt(_stockArray[cnt].CNT), buy: _stockArray[cnt].buy, date: new Date(_stockArray[cnt].date), price: _stockArray[cnt].price };
                         data.stocks.push(_value);
                         cnt ++;
                         if(cnt == _stockArray.length){
@@ -429,7 +429,7 @@ router.post("/editPortfolio", function(req, res){                   // add|edit|
                                         res.send("error");
                                     } else {
                                         var search_ind = "stocks."+_data.index+".date";
-                                        let _updatePValue = {$push: {stocks: {sID: m_res._name, sCount: _data.shares, buy: _data.buy, date: _data.date, price:_data.price}}};
+                                        let _updatePValue = {$push: {stocks: {sID: m_res._name, sCount: _data.shares, buy: (_data.buy==="true"), date: _data.date, price:_data.price}}};
                                         editInfo(_pTitle, _updatePValue, res, 2);
                                     }
                                 })
@@ -464,7 +464,7 @@ router.post("/editPortfolio", function(req, res){                   // add|edit|
              *******************************************************/
             let hist = new History({
                 price: _data.price,
-                date: Date.now()
+                date: _data.date,
             });
             hist.save(function(error, result){
                 if(error){
