@@ -86,7 +86,7 @@ db.once('open', function(){
         return res.send("This is just for api");
     });
 
-    var server = app.listen(8000, () => console.log('Server started listening on port 8000'));
+    var server = app.listen(3001, () => console.log('Server started listening on port 3001'));
 });
 
 //check for DB Errors
