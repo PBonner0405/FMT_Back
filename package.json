@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Avantica777/FMT_Back.git"
+    "url": "git+https://github.com/topdev10/FMT_Back.git"
   },
   "author": "knight",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Avantica777/FMT_Back/issues"
+    "url": "https://github.com/topdev10/FMT_Back/issues"
   },
-  "homepage": "https://github.com/Avantica777/FMT_Back#readme",
+  "homepage": "https://github.com/topdev10/FMT_Back#readme",
   "dependencies": {
     "Q": "^1.0.0",
     "audit": "0.0.6",
